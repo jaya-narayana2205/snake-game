@@ -1,6 +1,6 @@
 # =============================================================
 # Snake Game — CI/CD Pipeline
-# Lint → Build → Push to DockerHub → Notify via Slack
+# Lint → Build → Push to DockerHub
 # =============================================================
 
 name: CI/CD Pipeline
@@ -86,70 +86,3 @@ jobs:
 
       - name: Verify pushed image
         run: docker pull ${{ env.DOCKER_IMAGE }}:latest
-
-  # -----------------------------------------------------------
-  # Job 3: Slack Notification
-  # -----------------------------------------------------------
-  notify:
-    name: Slack Notification
-    runs-on: ubuntu-latest
-    needs: [lint, build-and-push]
-    if: always() && github.event_name == 'push'
-
-    steps:
-      - name: Determine pipeline status
-        id: status
-        run: |
-          if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.build-and-push.result }}" == "success" ]]; then
-            echo "result=success" >> "$GITHUB_OUTPUT"
-            echo "color=#00e676" >> "$GITHUB_OUTPUT"
-            echo "emoji=:white_check_mark:" >> "$GITHUB_OUTPUT"
-            echo "text=Pipeline succeeded" >> "$GITHUB_OUTPUT"
-          else
-            echo "result=failure" >> "$GITHUB_OUTPUT"
-            echo "color=#ff5252" >> "$GITHUB_OUTPUT"
-            echo "emoji=:x:" >> "$GITHUB_OUTPUT"
-            echo "text=Pipeline failed" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Send Slack notification
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ steps.status.outputs.color }}",
-                  "blocks": [
-                    {
-                      "type": "section",
-                      "text": {
-                        "type": "mrkdwn",
-                        "text": "${{ steps.status.outputs.emoji }} *Snake Game — ${{ steps.status.outputs.text }}*"
-                      }
-                    },
-                    {
-                      "type": "section",
-                      "fields": [
-                        { "type": "mrkdwn", "text": "*Branch:*\n`${{ github.ref_name }}`" },
-                        { "type": "mrkdwn", "text": "*Commit:*\n`${{ github.sha }}`" },
-                        { "type": "mrkdwn", "text": "*Author:*\n${{ github.actor }}" },
-                        { "type": "mrkdwn", "text": "*Image:*\n`${{ env.DOCKER_IMAGE }}:latest`" }
-                      ]
-                    },
-                    {
-                      "type": "actions",
-                      "elements": [
-                        {
-                          "type": "button",
-                          "text": { "type": "plain_text", "text": "View Run" },
-                          "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }

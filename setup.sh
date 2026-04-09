@@ -190,7 +190,7 @@ summary() {
     echo -e "  Files      : $(git ls-files | wc -l | tr -d ' ') tracked file(s)"
     echo ""
     echo -e "  ${CYAN}Next steps:${NC}"
-    echo "  1. Add GitHub secrets (DOCKER_USERNAME, DOCKER_PASSWORD, SLACK_WEBHOOK_URL)"
+    echo "  1. Add GitHub secrets (DOCKER_USERNAME, DOCKER_PASSWORD)"
     echo "  2. Update k8s/deployment.yml with your DockerHub image name"
     echo "  3. Push a change to 'main' to trigger the CI/CD pipeline"
     echo ""
