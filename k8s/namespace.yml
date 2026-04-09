@@ -1,0 +1,10 @@
+# =============================================================
+# Namespace — isolates all Snake Game resources
+# =============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: snake-game
+  labels:
+    app: snake-game
+    managed-by: kubectl

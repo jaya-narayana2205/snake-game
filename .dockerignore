@@ -1,0 +1,11 @@
+.git
+.github
+.vscode
+node_modules
+*.md
+LICENSE
+.gitignore
+.env*
+docker-compose*.yml
+infra/
+tests/

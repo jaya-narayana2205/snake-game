@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  snake-game:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: snake-game
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+    resources:
+      limits:
+        cpus: "0.50"
+        memory: 64M
+      reservations:
+        cpus: "0.10"
+        memory: 16M
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /var/log/nginx
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - snake-net
+
+networks:
+  snake-net:
+    driver: bridge

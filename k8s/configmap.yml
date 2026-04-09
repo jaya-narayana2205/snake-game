@@ -1,0 +1,64 @@
+# =============================================================
+# ConfigMap — Nginx configuration (mounted into pods)
+# =============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: snake-game
+  labels:
+    app: snake-game
+    component: webserver
+data:
+  default.conf: |
+    server {
+        listen 8080;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
+
+        # Gzip compression
+        gzip on;
+        gzip_types text/html text/css application/javascript image/svg+xml;
+        gzip_min_length 256;
+
+        # Cache static assets
+        location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+            expires 30d;
+            add_header Cache-Control "public, immutable";
+        }
+
+        # SPA fallback
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        # Block hidden files
+        location ~ /\. {
+            deny all;
+            access_log off;
+            log_not_found off;
+        }
+
+        # Health check endpoint — used by K8s probes
+        location /healthz {
+            access_log off;
+            return 200 "ok\n";
+            add_header Content-Type text/plain;
+        }
+
+        # Readiness endpoint
+        location /readyz {
+            access_log off;
+            return 200 "ready\n";
+            add_header Content-Type text/plain;
+        }
+    }
